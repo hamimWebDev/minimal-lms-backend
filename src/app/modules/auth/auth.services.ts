@@ -83,11 +83,13 @@ const loginUser = async (email: string, password: string) => {
 
 const refreshToken = async (refreshToken: string) => {
   try {
+    // Verify the refresh token
     const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret as string) as JwtPayload;
     if (typeof decoded === 'string' || !decoded) {
       throw new Error("Invalid refresh token");
     }
 
+    // Check if user exists and token is valid
     const user = await User.findOne({ 
       email: decoded?.email,
       'refreshTokens.token': refreshToken,
@@ -98,7 +100,12 @@ const refreshToken = async (refreshToken: string) => {
       throw new Error("Invalid refresh token");
     }
 
-    // Generate new access token
+    // Check if user is still active
+    if (user.status === 'blocked' || user.isDeleted) {
+      throw new Error("User account is blocked or deleted");
+    }
+
+    // Generate new access token (15 minutes)
     const newAccessToken = jwt.sign(
       {
         id: user?._id,
@@ -109,7 +116,7 @@ const refreshToken = async (refreshToken: string) => {
       { expiresIn: "15m" }
     );
 
-    // Generate new refresh token
+    // Generate new refresh token (7 days)
     const newRefreshToken = jwt.sign(
       {
         id: user?._id,
@@ -132,13 +139,21 @@ const refreshToken = async (refreshToken: string) => {
       }
     });
 
-    return {
+    const result = {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
       user: user.toJSON(),
     };
+    
+    return result;
   } catch (error) {
-    throw new Error("Invalid refresh token");
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new Error("Refresh token expired");
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new Error("Invalid refresh token");
+    }
+    throw new Error("Token refresh failed");
   }
 };
 

@@ -14,6 +14,8 @@ app.use(
   cors({
     origin: ["http://localhost:3000","https://minimal-lms-frontend-six.vercel.app"],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 // compression middleware

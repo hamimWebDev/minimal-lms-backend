@@ -67,10 +67,12 @@ const loginUser = async (email, password) => {
 };
 const refreshToken = async (refreshToken) => {
     try {
+        // Verify the refresh token
         const decoded = jsonwebtoken_1.default.verify(refreshToken, config_1.default.jwt_refresh_secret);
         if (typeof decoded === 'string' || !decoded) {
             throw new Error("Invalid refresh token");
         }
+        // Check if user exists and token is valid
         const user = await user_model_1.User.findOne({
             email: decoded?.email,
             'refreshTokens.token': refreshToken,
@@ -79,13 +81,17 @@ const refreshToken = async (refreshToken) => {
         if (!user) {
             throw new Error("Invalid refresh token");
         }
-        // Generate new access token
+        // Check if user is still active
+        if (user.status === 'blocked' || user.isDeleted) {
+            throw new Error("User account is blocked or deleted");
+        }
+        // Generate new access token (15 minutes)
         const newAccessToken = jsonwebtoken_1.default.sign({
             id: user?._id,
             email: user?.email,
             role: user?.role,
         }, config_1.default.jwt_secret, { expiresIn: "15m" });
-        // Generate new refresh token
+        // Generate new refresh token (7 days)
         const newRefreshToken = jsonwebtoken_1.default.sign({
             id: user?._id,
             email: user?.email,
@@ -102,14 +108,21 @@ const refreshToken = async (refreshToken) => {
                 }
             }
         });
-        return {
+        const result = {
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
             user: user.toJSON(),
         };
+        return result;
     }
     catch (error) {
-        throw new Error("Invalid refresh token");
+        if (error instanceof jsonwebtoken_1.default.TokenExpiredError) {
+            throw new Error("Refresh token expired");
+        }
+        if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
+            throw new Error("Invalid refresh token");
+        }
+        throw new Error("Token refresh failed");
     }
 };
 const logout = async (refreshToken) => {

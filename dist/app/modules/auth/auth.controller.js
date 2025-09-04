@@ -51,6 +51,7 @@ const loginUser = async (req, res) => {
             sameSite: "strict",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
             path: "/",
+            domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
         });
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_1.default.OK,
@@ -84,6 +85,7 @@ const refreshToken = (0, catchAsync_1.default)(async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         path: "/",
+        domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
     });
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
@@ -106,6 +108,7 @@ const logout = (0, catchAsync_1.default)(async (req, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
+        domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
     });
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
@@ -126,6 +129,7 @@ const logoutAll = (0, catchAsync_1.default)(async (req, res) => {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
+        domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
     });
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_1.default.OK,
