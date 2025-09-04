@@ -1,0 +1,117 @@
+{
+	"info": {
+		"_postman_id": "eee9a452-1e31-4290-adcd-612d7fcf61f5",
+		"name": "Demo project",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34926453"
+	},
+	"item": [
+		{
+			"name": "login user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"hamim@gamil.com\",\n    \"password\": \"StrongPassword123!\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/v1/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"hamim\",\n  \"email\": \"hamim@gamil.com\",\n  \"password\": \"StrongPassword123!\",\n  \"role\": \"user\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/v1/users/create-user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"create-user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create blog",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ODVmZjNlYmQ0YTc3ZGY3OGZkNjNmMyIsImVtYWlsIjoiaGFtaW1AZ2FtaWwuY29tIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzUzNjEyODcwLCJleHAiOjE3NTM4NzIwNzB9.8ON3eWiWBNRE9Ehc9kvEWucp62yNJcg1vz50N8jj2IA",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/home/user/Pictures/walpaper2.jpg"
+						},
+						{
+							"key": "data",
+							"value": "{\n  \"title\": \"How to Use Our E-Commerce Platform\",\n  \"content\": \"This is a detailed guide on how to use our platform...\",\n  \"author\": \"userId123\",\n  \"tags\": [\"guide\", \"ecommerce\", \"how-to\"],\n  \"image\": \"https://example.com/image.jpg\"\n}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/v1/blogs",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"v1",
+						"blogs"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
