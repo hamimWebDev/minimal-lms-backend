@@ -37,17 +37,28 @@ const loginUser = async (email, password) => {
     if (!isMatch) {
         throw new Error("Invalid credentials");
     }
+    // Generate access token (15 minutes)
     const accessToken = jsonwebtoken_1.default.sign({
         id: user?._id,
         email: user?.email,
         role: user?.role,
     }, config_1.default.jwt_secret, { expiresIn: "15m" });
-    // refresh token
+    // Generate refresh token (7 days)
     const refreshToken = jsonwebtoken_1.default.sign({
         id: user?._id,
         email: user?.email,
         role: user?.role,
     }, config_1.default.jwt_refresh_secret, { expiresIn: "7d" });
+    // Store refresh token in user document for rotation
+    await user_model_1.User.findByIdAndUpdate(user._id, {
+        $push: {
+            refreshTokens: {
+                token: refreshToken,
+                createdAt: new Date(),
+                isRevoked: false
+            }
+        }
+    });
     return {
         accessToken,
         refreshToken,
@@ -55,33 +66,87 @@ const loginUser = async (email, password) => {
     };
 };
 const refreshToken = async (refreshToken) => {
-    const decoded = jsonwebtoken_1.default.verify(refreshToken, config_1.default.jwt_refresh_secret);
-    if (typeof decoded === 'string' || !decoded) {
+    try {
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, config_1.default.jwt_refresh_secret);
+        if (typeof decoded === 'string' || !decoded) {
+            throw new Error("Invalid refresh token");
+        }
+        const user = await user_model_1.User.findOne({
+            email: decoded?.email,
+            'refreshTokens.token': refreshToken,
+            'refreshTokens.isRevoked': false
+        });
+        if (!user) {
+            throw new Error("Invalid refresh token");
+        }
+        // Generate new access token
+        const newAccessToken = jsonwebtoken_1.default.sign({
+            id: user?._id,
+            email: user?.email,
+            role: user?.role,
+        }, config_1.default.jwt_secret, { expiresIn: "15m" });
+        // Generate new refresh token
+        const newRefreshToken = jsonwebtoken_1.default.sign({
+            id: user?._id,
+            email: user?.email,
+            role: user?.role,
+        }, config_1.default.jwt_refresh_secret, { expiresIn: "7d" });
+        // Revoke old refresh token and add new one (token rotation)
+        await user_model_1.User.findByIdAndUpdate(user._id, {
+            $pull: { refreshTokens: { token: refreshToken } },
+            $push: {
+                refreshTokens: {
+                    token: newRefreshToken,
+                    createdAt: new Date(),
+                    isRevoked: false
+                }
+            }
+        });
+        return {
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+            user: user.toJSON(),
+        };
+    }
+    catch (error) {
         throw new Error("Invalid refresh token");
     }
-    const user = await user_model_1.User.findOne({ email: decoded?.email });
-    if (!user) {
-        throw new Error("User not found");
+};
+const logout = async (refreshToken) => {
+    try {
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, config_1.default.jwt_refresh_secret);
+        if (typeof decoded === 'string' || !decoded) {
+            throw new Error("Invalid refresh token");
+        }
+        // Revoke the refresh token
+        await user_model_1.User.findOneAndUpdate({
+            email: decoded?.email,
+            'refreshTokens.token': refreshToken
+        }, {
+            $set: { 'refreshTokens.$.isRevoked': true }
+        });
+        return { success: true };
     }
-    const accessToken = jsonwebtoken_1.default.sign({
-        id: user?._id,
-        email: user?.email,
-        role: user?.role,
-    }, config_1.default.jwt_secret, { expiresIn: "15m" });
-    // Generate new refresh token
-    const newRefreshToken = jsonwebtoken_1.default.sign({
-        id: user?._id,
-        email: user?.email,
-        role: user?.role,
-    }, config_1.default.jwt_refresh_secret, { expiresIn: "7d" });
-    return {
-        accessToken,
-        refreshToken: newRefreshToken,
-        user: user.toJSON(), // Use toJSON to automatically exclude password field
-    };
+    catch (error) {
+        throw new Error("Invalid refresh token");
+    }
+};
+const logoutAll = async (userId) => {
+    try {
+        // Revoke all refresh tokens for the user
+        await user_model_1.User.findByIdAndUpdate(userId, {
+            $set: { 'refreshTokens.$[].isRevoked': true }
+        });
+        return { success: true };
+    }
+    catch (error) {
+        throw new Error("Failed to logout from all devices");
+    }
 };
 exports.AuthServices = {
     registerUser,
     loginUser,
     refreshToken,
+    logout,
+    logoutAll,
 };

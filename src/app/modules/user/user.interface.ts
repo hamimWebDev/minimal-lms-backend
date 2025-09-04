@@ -4,6 +4,12 @@ import { Model } from "mongoose";
 export type TUserRole =  "user" | "admin" | "superAdmin";
 export type TUserStatus = 'in-progress' | 'blocked';
 
+export interface IRefreshToken {
+  token: string;
+  createdAt: Date;
+  isRevoked: boolean;
+}
+
 export interface IUser{
     name: string;
     email: string;
@@ -11,8 +17,8 @@ export interface IUser{
     role: TUserRole;
     status: TUserStatus;
     isDeleted: boolean;
+    refreshTokens?: IRefreshToken[];
 }
-
 
 export type UserModel = Model<IUser>;
 

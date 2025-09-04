@@ -10,13 +10,15 @@ interface CustomJWTPayload extends JwtPayload {
 
 const auth = (allowedRoles: ('admin' | 'user' | 'superAdmin')[]): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
     
 
-    if (!token) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
       return;
     }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
     try {
       // Verify token

@@ -116,5 +116,31 @@ courseSchema.virtual('totalDuration', {
         },
     ],
 });
+// Virtual for enrollment count
+courseSchema.virtual('enrollmentCount', {
+    ref: 'EnrollmentRequest',
+    localField: '_id',
+    foreignField: 'courseId',
+    count: true,
+});
+// Virtual for approved enrollment count
+courseSchema.virtual('approvedEnrollmentCount', {
+    ref: 'EnrollmentRequest',
+    localField: '_id',
+    foreignField: 'courseId',
+    pipeline: [
+        {
+            $match: {
+                status: 'approved',
+            },
+        },
+        {
+            $group: {
+                _id: null,
+                count: { $sum: 1 },
+            },
+        },
+    ],
+});
 const Course = mongoose_1.default.model('Course', courseSchema);
 exports.default = Course;

@@ -37,6 +37,21 @@ const userSchema = new Schema<IUser>({
         type: Boolean,
         default: false,
     },
+    refreshTokens: [{
+        token: {
+            type: String,
+            required: true,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+            expires: 7 * 24 * 60 * 60, // 7 days in seconds
+        },
+        isRevoked: {
+            type: Boolean,
+            default: false,
+        }
+    }],
 
 }, {
     timestamps: true,

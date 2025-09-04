@@ -14,7 +14,7 @@ const app = (0, express_1.default)();
 // parser
 app.use(express_1.default.json());
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:3000", "https://jihad-lms-frontend.vercel.app"],
+    origin: ["http://localhost:3000", "https://minimal-lms-frontend-six.vercel.app"],
     credentials: true,
 }));
 // compression middleware

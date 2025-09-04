@@ -4,6 +4,8 @@ import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
 import httpStatus from 'http-status';
 import EnrollmentRequest from '../enrollment/enrollment.model';
+import Module from '../module/module.model';
+import Lecture from '../lecture/lecture.model';
 
 const createCourse = async (payload: ICourse) => {
   const result = await Course.create(payload);
@@ -18,7 +20,11 @@ const getAllCourses = async (filters: ICourseFilters) => {
     .paginate()
     .fields();
 
-  const result = await courseQuery.modelQuery;
+  const result = await courseQuery.modelQuery
+    .populate('modulesCount')
+    .populate('totalDuration')
+    .populate('enrollmentCount')
+    .populate('approvedEnrollmentCount');
   const meta = await courseQuery.countTotal();
 
   return {
@@ -96,11 +102,28 @@ const updateCourse = async (id: string, payload: Partial<ICourse>) => {
 };
 
 const deleteCourse = async (id: string) => {
-  const result = await Course.findByIdAndDelete(id);
-
-  if (!result) {
+  // First, find the course to check if it exists
+  const course = await Course.findById(id);
+  
+  if (!course) {
     throw new AppError(httpStatus.NOT_FOUND, 'Course not found');
   }
+
+  // Delete related modules and lectures
+  const modules = await Module.find({ courseId: id });
+  const moduleIds = modules.map(module => module._id);
+  
+  // Delete lectures associated with these modules
+  await Lecture.deleteMany({ moduleId: { $in: moduleIds } });
+  
+  // Delete modules
+  await Module.deleteMany({ courseId: id });
+  
+  // Delete enrollment requests for this course
+  await EnrollmentRequest.deleteMany({ courseId: id });
+  
+  // Finally, delete the course
+  const result = await Course.findByIdAndDelete(id);
 
   return result;
 };

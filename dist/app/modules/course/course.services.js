@@ -9,6 +9,8 @@ const QueryBuilder_1 = __importDefault(require("../../builder/QueryBuilder"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 const enrollment_model_1 = __importDefault(require("../enrollment/enrollment.model"));
+const module_model_1 = __importDefault(require("../module/module.model"));
+const lecture_model_1 = __importDefault(require("../lecture/lecture.model"));
 const createCourse = async (payload) => {
     const result = await course_model_1.default.create(payload);
     return result;
@@ -20,7 +22,11 @@ const getAllCourses = async (filters) => {
         .sort()
         .paginate()
         .fields();
-    const result = await courseQuery.modelQuery;
+    const result = await courseQuery.modelQuery
+        .populate('modulesCount')
+        .populate('totalDuration')
+        .populate('enrollmentCount')
+        .populate('approvedEnrollmentCount');
     const meta = await courseQuery.countTotal();
     return {
         meta,
@@ -79,10 +85,22 @@ const updateCourse = async (id, payload) => {
     return result;
 };
 const deleteCourse = async (id) => {
-    const result = await course_model_1.default.findByIdAndDelete(id);
-    if (!result) {
+    // First, find the course to check if it exists
+    const course = await course_model_1.default.findById(id);
+    if (!course) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Course not found');
     }
+    // Delete related modules and lectures
+    const modules = await module_model_1.default.find({ courseId: id });
+    const moduleIds = modules.map(module => module._id);
+    // Delete lectures associated with these modules
+    await lecture_model_1.default.deleteMany({ moduleId: { $in: moduleIds } });
+    // Delete modules
+    await module_model_1.default.deleteMany({ courseId: id });
+    // Delete enrollment requests for this course
+    await enrollment_model_1.default.deleteMany({ courseId: id });
+    // Finally, delete the course
+    const result = await course_model_1.default.findByIdAndDelete(id);
     return result;
 };
 const getPublishedCourses = async (filters, userId) => {

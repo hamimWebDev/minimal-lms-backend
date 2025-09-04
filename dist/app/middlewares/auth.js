@@ -7,11 +7,12 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../config"));
 const auth = (allowedRoles) => {
     return (req, res, next) => {
-        const token = req.headers.authorization;
-        if (!token) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
             res.status(401).json({ success: false, message: 'Unauthorized: No token provided' });
             return;
         }
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
         try {
             // Verify token
             const decoded = jsonwebtoken_1.default.verify(token, config_1.default.jwt_secret);
