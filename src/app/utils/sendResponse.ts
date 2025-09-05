@@ -16,7 +16,7 @@ export const sendResponse = <T>(res: Response, data: IApiResponse<T>) => {
         data: data.data,
         ...(data.meta && { meta: data.meta }),
     };
-    return res.status(200).json(responseData);
+    return res.status(data.statusCode).json(responseData);
 };
 
 

@@ -5,6 +5,8 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import { User } from "../user/user.model";
 import crypto from "crypto";
+import AppError from "../../errors/AppError";
+import httpStatus from "http-status";
 
 const registerUser = async (name: string, email: string, password: string) => {
   // Check if user already exists
@@ -33,12 +35,12 @@ const registerUser = async (name: string, email: string, password: string) => {
 const loginUser = async (email: string, password: string) => {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
   
   const isMatch = await bcrypt.compare(password, user?.password);
   if (!isMatch) {
-    throw new Error("Invalid credentials");
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid credentials");
   }
 
   // Generate access token (15 minutes)

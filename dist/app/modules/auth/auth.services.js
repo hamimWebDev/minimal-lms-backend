@@ -8,6 +8,8 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const config_1 = __importDefault(require("../../config"));
 const user_model_1 = require("../user/user.model");
+const AppError_1 = __importDefault(require("../../errors/AppError"));
+const http_status_1 = __importDefault(require("http-status"));
 const registerUser = async (name, email, password) => {
     // Check if user already exists
     const existingUser = await user_model_1.User.findOne({ email });
@@ -31,11 +33,11 @@ const registerUser = async (name, email, password) => {
 const loginUser = async (email, password) => {
     const user = await user_model_1.User.findOne({ email });
     if (!user) {
-        throw new Error("User not found");
+        throw new AppError_1.default(http_status_1.default.NOT_FOUND, "User not found");
     }
     const isMatch = await bcrypt_1.default.compare(password, user?.password);
     if (!isMatch) {
-        throw new Error("Invalid credentials");
+        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, "Invalid credentials");
     }
     // Generate access token (15 minutes)
     const accessToken = jsonwebtoken_1.default.sign({

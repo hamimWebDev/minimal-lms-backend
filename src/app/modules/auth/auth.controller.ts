@@ -40,40 +40,31 @@ const registerUser = async (req: Request, res: Response) => {
 };
 
 // login user
-const loginUser = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
+const loginUser = catchAsync(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-    const result = await AuthServices.loginUser(email, password);
+  const result = await AuthServices.loginUser(email, password);
 
-    // Set refresh token in HttpOnly secure cookie
-    res.cookie("refreshToken", result.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // true in production, false in development
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-      path: "/",
-      domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
-    });
+  // Set refresh token in HttpOnly secure cookie
+  res.cookie("refreshToken", result.refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", // true in production, false in development
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    path: "/",
+    domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
+  });
 
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "User logged in successfully",
-      data: {
-        accessToken: result.accessToken,
-        user: result.user,
-      },
-    });
-  } catch (error: any) {
-    sendResponse(res, {
-      statusCode: httpStatus.BAD_REQUEST,
-      success: false,
-      message: error.message,
-      data: null,
-    });
-  }
-};
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User logged in successfully",
+    data: {
+      accessToken: result.accessToken,
+      user: result.user,
+    },
+  });
+});
 
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;

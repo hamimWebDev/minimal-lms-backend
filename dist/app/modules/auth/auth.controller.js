@@ -40,38 +40,28 @@ const registerUser = async (req, res) => {
     }
 };
 // login user
-const loginUser = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const result = await auth_services_1.AuthServices.loginUser(email, password);
-        // Set refresh token in HttpOnly secure cookie
-        res.cookie("refreshToken", result.refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // true in production, false in development
-            sameSite: "strict",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-            path: "/",
-            domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
-        });
-        (0, sendResponse_1.sendResponse)(res, {
-            statusCode: http_status_1.default.OK,
-            success: true,
-            message: "User logged in successfully",
-            data: {
-                accessToken: result.accessToken,
-                user: result.user,
-            },
-        });
-    }
-    catch (error) {
-        (0, sendResponse_1.sendResponse)(res, {
-            statusCode: http_status_1.default.BAD_REQUEST,
-            success: false,
-            message: error.message,
-            data: null,
-        });
-    }
-};
+const loginUser = (0, catchAsync_1.default)(async (req, res) => {
+    const { email, password } = req.body;
+    const result = await auth_services_1.AuthServices.loginUser(email, password);
+    // Set refresh token in HttpOnly secure cookie
+    res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // true in production, false in development
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        path: "/",
+        domain: process.env.NODE_ENV === "production" ? undefined : "localhost"
+    });
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: "User logged in successfully",
+        data: {
+            accessToken: result.accessToken,
+            user: result.user,
+        },
+    });
+});
 const refreshToken = (0, catchAsync_1.default)(async (req, res) => {
     const { refreshToken } = req.cookies;
     if (!refreshToken) {

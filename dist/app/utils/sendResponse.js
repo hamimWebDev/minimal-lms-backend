@@ -9,6 +9,6 @@ const sendResponse = (res, data) => {
         data: data.data,
         ...(data.meta && { meta: data.meta }),
     };
-    return res.status(200).json(responseData);
+    return res.status(data.statusCode).json(responseData);
 };
 exports.sendResponse = sendResponse;
