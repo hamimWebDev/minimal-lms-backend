@@ -83,11 +83,16 @@ const loginUser = async (email: string, password: string) => {
 
 const refreshToken = async (refreshToken: string) => {
   try {
+    console.log('Refresh token service called with token:', refreshToken ? 'present' : 'missing');
+    
     // Verify the refresh token
     const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret as string) as JwtPayload;
     if (typeof decoded === 'string' || !decoded) {
+      console.log('Invalid refresh token - decoded is string or null');
       throw new Error("Invalid refresh token");
     }
+
+    console.log('Refresh token decoded successfully for user:', decoded.email);
 
     // Check if user exists and token is valid
     const user = await User.findOne({ 
@@ -97,15 +102,19 @@ const refreshToken = async (refreshToken: string) => {
     });
 
     if (!user) {
+      console.log('User not found or refresh token not valid for user:', decoded.email);
       throw new Error("Invalid refresh token");
     }
 
+    console.log('User found:', user.email, 'Status:', user.status, 'IsDeleted:', user.isDeleted);
+
     // Check if user is still active
     if (user.status === 'blocked' || user.isDeleted) {
+      console.log('User account is blocked or deleted');
       throw new Error("User account is blocked or deleted");
     }
 
-    // Generate new access token (15 minutes)
+    // Generate new access token (10 hours)
     const newAccessToken = jwt.sign(
       {
         id: user?._id,
@@ -127,9 +136,16 @@ const refreshToken = async (refreshToken: string) => {
       { expiresIn: "7d" }
     );
 
+    console.log('New tokens generated successfully');
+
     // Revoke old refresh token and add new one (token rotation)
+    // First remove the old token
     await User.findByIdAndUpdate(user._id, {
-      $pull: { refreshTokens: { token: refreshToken } },
+      $pull: { refreshTokens: { token: refreshToken } }
+    });
+    
+    // Then add the new token
+    await User.findByIdAndUpdate(user._id, {
       $push: {
         refreshTokens: {
           token: newRefreshToken,
@@ -139,21 +155,30 @@ const refreshToken = async (refreshToken: string) => {
       }
     });
 
+    console.log('Refresh token rotation completed');
+
     const result = {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
       user: user.toJSON(),
     };
     
+    console.log('Refresh token service completed successfully');
     return result;
   } catch (error) {
+    console.error('Refresh token service error:', error);
+    
     if (error instanceof jwt.TokenExpiredError) {
+      console.log('Refresh token expired');
       throw new Error("Refresh token expired");
     }
     if (error instanceof jwt.JsonWebTokenError) {
+      console.log('Invalid refresh token JWT error');
       throw new Error("Invalid refresh token");
     }
-    throw new Error("Token refresh failed");
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.log('Generic token refresh error:', errorMessage);
+    throw new Error(`Token refresh failed: ${errorMessage}`);
   }
 };
 
