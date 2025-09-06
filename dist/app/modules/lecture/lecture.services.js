@@ -10,10 +10,6 @@ const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const createLecture = async (payload) => {
-    // Validate that at least one PDF note is provided
-    if (!payload.pdfNotes || payload.pdfNotes.length === 0) {
-        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'At least one PDF note is required');
-    }
     const result = await lecture_model_1.default.create(payload);
     return result;
 };

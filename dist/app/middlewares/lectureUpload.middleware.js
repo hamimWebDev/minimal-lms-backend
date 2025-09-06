@@ -10,7 +10,7 @@ const AppError_1 = __importDefault(require("../errors/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 // File filter function
 const fileFilter = (req, file, cb) => {
-    if (file.fieldname === 'videoFile') {
+    if (file.fieldname === 'videoUrl') {
         // Videos
         if (file.mimetype.startsWith('video/')) {
             cb(null, true);
@@ -44,7 +44,7 @@ const upload = (0, multer_1.default)({
 });
 // Custom middleware for lecture file uploads
 exports.lectureUploadMiddleware = upload.fields([
-    { name: 'videoFile', maxCount: 1 },
+    { name: 'videoUrl', maxCount: 1 },
     { name: 'pdfNotes', maxCount: 10 }
 ]);
 // Process uploaded files and upload to Cloudinary
@@ -57,14 +57,14 @@ const processLectureFiles = async (req, res, next) => {
         const files = req.files;
         const uploadedFiles = {};
         // Process video file
-        if (files.videoFile) {
-            const videoFile = files.videoFile[0];
-            const result = await cloudinary_config_1.cloudinaryUpload.uploader.upload(`data:${videoFile.mimetype};base64,${videoFile.buffer.toString('base64')}`, {
+        if (files.videoUrl) {
+            const videoUrl = files.videoUrl[0];
+            const result = await cloudinary_config_1.cloudinaryUpload.uploader.upload(`data:${videoUrl.mimetype};base64,${videoUrl.buffer.toString('base64')}`, {
                 folder: 'lms/videos',
                 resource_type: 'video',
                 public_id: `video-${Date.now()}-${Math.random().toString(36).substring(2)}`,
             });
-            uploadedFiles.videoFile = result.secure_url;
+            uploadedFiles.videoUrl = result.secure_url;
         }
         // Process PDF files
         if (files.pdfNotes) {

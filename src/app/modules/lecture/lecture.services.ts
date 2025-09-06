@@ -6,11 +6,6 @@ import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 
 const createLecture = async (payload: ILecture) => {
-  // Validate that at least one PDF note is provided
-  if (!payload.pdfNotes || payload.pdfNotes.length === 0) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'At least one PDF note is required');
-  }
-
   const result = await Lecture.create(payload);
   return result;
 };

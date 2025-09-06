@@ -72,7 +72,7 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
     } else {
       cb(new Error('Only PDF files are allowed for notes'));
     }
-  } else if (file.fieldname === 'videoFile') {
+  } else if (file.fieldname === 'videoUrl') {
     // Videos
     if (file.mimetype.startsWith('video/')) {
       cb(null, true);

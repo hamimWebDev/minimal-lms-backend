@@ -12,8 +12,6 @@ const createLecture = z.object({
     
     videoUrl: z.string().optional(),
     
-    videoFile: z.string().optional(),
-    
     pdfNotes: z.array(z.string()).optional(),
     
     duration: z.coerce.number().min(0, 'Duration cannot be negative').optional(),
@@ -33,8 +31,6 @@ const updateLecture = z.object({
     moduleId: z.string().min(24, 'Invalid module ID').max(24, 'Invalid module ID').optional(),
     
     videoUrl: z.string().optional(),
-    
-    videoFile: z.string().optional(),
     
     pdfNotes: z.array(z.string()).optional(),
     

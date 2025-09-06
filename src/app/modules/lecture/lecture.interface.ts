@@ -4,8 +4,7 @@ export interface ILecture {
   title: string;
   moduleId: mongoose.Types.ObjectId;
   videoUrl?: string;
-  videoFile?: string;
-  pdfNotes: string[];
+  pdfNotes?: string[];
   duration?: number;
   order: number;
   isPublished?: boolean;

@@ -1,6 +1,5 @@
 import express from 'express';
 import { LectureControllers } from './lecture.controller';
-import { lectureUploadMiddleware, processLectureFiles } from '../../middlewares/lectureUpload.middleware';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { lectureValidation } from './lecture.validation';
@@ -11,8 +10,6 @@ const router = express.Router();
 // Admin routes (require admin/superAdmin role)
 router.post(
   '/',
-  lectureUploadMiddleware,
-  processLectureFiles,
   validateRequest(lectureValidation.createLecture),
   auth(['admin']),
   LectureControllers.createLecture
@@ -20,8 +17,6 @@ router.post(
 
 router.put(
   '/:id',
-  lectureUploadMiddleware,
-  processLectureFiles,
   validateRequest(lectureValidation.updateLecture),
   auth(['admin']),
   LectureControllers.updateLecture

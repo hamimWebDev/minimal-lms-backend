@@ -19,19 +19,22 @@ const lectureSchema = new Schema<ILecture>(
       trim: true,
       validate: {
         validator: function(v: string) {
-          if (!v) return true; // Allow empty if videoFile is provided
+          if (!v) return true; // Allow empty
           return /^https?:\/\//.test(v);
         },
         message: 'Video URL must be a valid HTTP/HTTPS URL',
       },
     },
-    videoFile: {
-      type: String,
-      trim: true,
-    },
     pdfNotes: [{
       type: String,
       trim: true,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true; // Allow empty
+          return /^https?:\/\//.test(v);
+        },
+        message: 'PDF URL must be a valid HTTP/HTTPS URL',
+      },
     }],
     duration: {
       type: Number,
