@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000","https://minimal-lms-frontend-six.vercel.app", "https://minimal-lms-frontend-9ag7.vercel.app"],
+    origin: ["http://localhost:3000","https://minimal-lms-frontend-six.vercel.app", "https://minimal-lms-frontend.netlify.app"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
